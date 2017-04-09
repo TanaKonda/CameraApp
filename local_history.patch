@@ -1,0 +1,17 @@
+Index: app/src/main/java/test/cameraapp/MyCameraActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/test/cameraapp/MyCameraActivity.java	(revision )
++++ app/src/main/java/test/cameraapp/MyCameraActivity.java	(revision )
+@@ -75,7 +75,7 @@
+         chooserIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
+         imageToUploadUri = Uri.fromFile(f);
+         startActivityForResult(chooserIntent, CAMERA_PHOTO);
+-       
++
+     }
+ 
+     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+\ No newline at end of file
