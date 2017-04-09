@@ -117,18 +117,6 @@ public class MyCameraActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_camera);
-//        verifyStoragePermissions(MyCameraActivity.this);
-//        Button photoButton = (Button) this.findViewById(R.id.button1);
-//        photoButton.setOnClickListener(new View.OnClickListener() {
-//
-//            @Override
-//            public void onClick(View v) {
-//
-//            captureCameraImage();
-//                takeapicture();
-//            }
-//        });
-//    }
         textureView = (TextureView) findViewById(R.id.texture);
         assert textureView != null;
         textureView.setSurfaceTextureListener(textureListener);
@@ -137,11 +125,47 @@ public class MyCameraActivity extends AppCompatActivity {
         takePictureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                takePicture();
+                Log.d("almost", "click was registered");
+                start();
             }
         });
-
+        Button stopper = (Button) findViewById(R.id.button2);
+        assert stopper != null;
+        stopper.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stop();
+            }
+        });
     }
+    int photocount = 1;
+    private boolean keepgoing= true;
+
+    private void start()
+    {
+        if(keepgoing) {
+            Log.d("almost", "photo number is " + photocount);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                        takePicture();
+                        ++photocount;
+                        start();
+                    }
+                }, 2000);
+
+            }
+        else
+        {
+            Log.d("almost", "stop was triggered, photos taken were" + photocount);
+        }
+    }
+
+    private void stop()
+    {
+        keepgoing = false;
+    }
+
 
     TextureView.SurfaceTextureListener textureListener = new TextureView.SurfaceTextureListener() {
 
@@ -216,10 +240,11 @@ public class MyCameraActivity extends AppCompatActivity {
         }
     }
 
-    protected void takePicture() {
+    public Bitmap[] takePicture() {
+        Bitmap[] arr = {};
         if (null == cameraDevice) {
             Log.d(TAG, "cameraDevice is null");
-            return;
+            return null;
         }
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);   // create camera manager
         try {
@@ -312,7 +337,7 @@ public class MyCameraActivity extends AppCompatActivity {
                 Uri selectedImage = imageToUploadUri;
                 getContentResolver().notifyChange(selectedImage, null);
                 Bitmap reducedSizeBitmap = getBitmap(imageToUploadUri.getPath());
-                Bitmap[] arr = createBitmaps(reducedSizeBitmap);
+                arr = createBitmaps(reducedSizeBitmap);
 
                 if(arr[0]!=null)
                 {
@@ -370,6 +395,7 @@ public class MyCameraActivity extends AppCompatActivity {
                 }else{
                     Toast.makeText(this,"Error while capturing Image1",Toast.LENGTH_LONG).show();
                 }
+                return arr;
             }else{
                 Toast.makeText(this,"Error while capturing Image2",Toast.LENGTH_LONG).show();
             }
@@ -377,6 +403,7 @@ public class MyCameraActivity extends AppCompatActivity {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+        return arr;
     }
 
     /* READABLE NON CALL BACK CODE */
@@ -477,87 +504,6 @@ public class MyCameraActivity extends AppCompatActivity {
         super.onPause();
     }
 
-//    private void captureCameraImage() {
-//        Intent chooserIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-//        String imageFileName = "JPEG_" + timeStamp + "_";
-//        File f = new File(Environment.getExternalStorageDirectory(), "/" + imageFileName);  // to avoid name collision
-//        chooserIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
-//        imageToUploadUri = Uri.fromFile(f);
-//        startActivityForResult(chooserIntent, CAMERA_PHOTO);
-//
-//    }
-
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if (requestCode == CAMERA_PHOTO && resultCode == Activity.RESULT_OK) {
-//            if(imageToUploadUri != null){
-//                Uri selectedImage = imageToUploadUri;
-//                getContentResolver().notifyChange(selectedImage, null);
-//                Bitmap reducedSizeBitmap = getBitmap(imageToUploadUri.getPath());
-//                Bitmap[] arr = createBitmaps(reducedSizeBitmap);
-//
-//                if(arr[0]!=null)
-//                {
-//                    this.imageView = (ImageView)this.findViewById(R.id.imageView1);
-//                    imageView.setImageBitmap(arr[0]);
-//                }
-//                if(arr[1]!=null)
-//                {
-//                    this.imageView = (ImageView)this.findViewById(R.id.imageView2);
-//                    imageView.setImageBitmap(arr[1]);
-//                }
-//                else
-//                {
-//                    Log.d("oh no", "arr 1 was null");
-//                }
-//                if(arr[2]!=null)
-//                {
-//                    this.imageView = (ImageView)this.findViewById(R.id.imageView3);
-//                    imageView.setImageBitmap(arr[2]);
-//                }
-//                if(arr[3]!=null)
-//                {
-//                    this.imageView = (ImageView)this.findViewById(R.id.imageView4);
-//                    imageView.setImageBitmap(arr[3]);
-//                }
-//                if(arr[4]!=null)
-//                {
-//                    this.imageView = (ImageView)this.findViewById(R.id.imageView5);
-//                    imageView.setImageBitmap(arr[4]);
-//                }
-//                if(arr[5]!=null)
-//                {
-//                    this.imageView = (ImageView)this.findViewById(R.id.imageView6);
-//                    imageView.setImageBitmap(arr[5]);
-//                }
-//                if(arr[6]!=null)
-//                {
-//                    this.imageView = (ImageView)this.findViewById(R.id.imageView7);
-//                    imageView.setImageBitmap(arr[6]);
-//                }
-//                if(arr[7]!=null)
-//                {
-//                    this.imageView = (ImageView)this.findViewById(R.id.imageView8);
-//                    imageView.setImageBitmap(arr[7]);
-//                }
-//                if(arr[8]!=null)
-//                {
-//                    this.imageView = (ImageView)this.findViewById(R.id.imageView9);
-//                    imageView.setImageBitmap(arr[8]);
-//                }
-//
-//                if(reducedSizeBitmap != null){
-//                    Log.d("new", "nvm");
-//                    // imageView.setImageBitmap(reducedSizeBitmap);
-//                }else{
-//                    Toast.makeText(this,"Error while capturing Image1",Toast.LENGTH_LONG).show();
-//                }
-//            }else{
-//                Toast.makeText(this,"Error while capturing Image2",Toast.LENGTH_LONG).show();
-//            }
-//        }
-//    }
 
     public Bitmap[] createBitmaps(Bitmap source) {
         Bitmap[] bmp = new Bitmap[9];
