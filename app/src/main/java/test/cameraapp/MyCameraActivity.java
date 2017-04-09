@@ -54,11 +54,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MyCameraActivity extends AppCompatActivity {
-    //    private ImageView imageView;
+    private ImageView imageView;
     private static final String TAG = "API";
     private TextureView textureView;
-    //    private static final int CAMERA_PHOTO = 111;
-//    private Uri imageToUploadUri;
+    private Uri imageToUploadUri;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
     static {
@@ -305,6 +304,76 @@ public class MyCameraActivity extends AppCompatActivity {
                 public void onConfigureFailed(CameraCaptureSession session) {
                 }
             }, mBackgroundHandler);
+
+            // Put image splitting code here
+            imageToUploadUri = Uri.fromFile(file);
+
+            if(imageToUploadUri != null){
+                Uri selectedImage = imageToUploadUri;
+                getContentResolver().notifyChange(selectedImage, null);
+                Bitmap reducedSizeBitmap = getBitmap(imageToUploadUri.getPath());
+                Bitmap[] arr = createBitmaps(reducedSizeBitmap);
+
+                if(arr[0]!=null)
+                {
+                    this.imageView = (ImageView)this.findViewById(R.id.imageView1);
+                    imageView.setImageBitmap(arr[0]);
+                }
+                if(arr[1]!=null)
+                {
+                    this.imageView = (ImageView)this.findViewById(R.id.imageView2);
+                    imageView.setImageBitmap(arr[1]);
+                }
+                else
+                {
+                    Log.d("oh no", "arr 1 was null");
+                }
+                if(arr[2]!=null)
+                {
+                    this.imageView = (ImageView)this.findViewById(R.id.imageView3);
+                    imageView.setImageBitmap(arr[2]);
+                }
+                if(arr[3]!=null)
+                {
+                    this.imageView = (ImageView)this.findViewById(R.id.imageView4);
+                    imageView.setImageBitmap(arr[3]);
+                }
+                if(arr[4]!=null)
+                {
+                    this.imageView = (ImageView)this.findViewById(R.id.imageView5);
+                    imageView.setImageBitmap(arr[4]);
+                }
+                if(arr[5]!=null)
+                {
+                    this.imageView = (ImageView)this.findViewById(R.id.imageView6);
+                    imageView.setImageBitmap(arr[5]);
+                }
+                if(arr[6]!=null)
+                {
+                    this.imageView = (ImageView)this.findViewById(R.id.imageView7);
+                    imageView.setImageBitmap(arr[6]);
+                }
+                if(arr[7]!=null)
+                {
+                    this.imageView = (ImageView)this.findViewById(R.id.imageView8);
+                    imageView.setImageBitmap(arr[7]);
+                }
+                if(arr[8]!=null)
+                {
+                    this.imageView = (ImageView)this.findViewById(R.id.imageView9);
+                    imageView.setImageBitmap(arr[8]);
+                }
+
+                if(reducedSizeBitmap != null){
+                    Log.d("new", "nvm");
+                    // imageView.setImageBitmap(reducedSizeBitmap);
+                }else{
+                    Toast.makeText(this,"Error while capturing Image1",Toast.LENGTH_LONG).show();
+                }
+            }else{
+                Toast.makeText(this,"Error while capturing Image2",Toast.LENGTH_LONG).show();
+            }
+
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -388,7 +457,6 @@ public class MyCameraActivity extends AppCompatActivity {
         }
     }
 
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -408,7 +476,6 @@ public class MyCameraActivity extends AppCompatActivity {
         stopBackgroundThread();
         super.onPause();
     }
-
 
 //    private void captureCameraImage() {
 //        Intent chooserIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
