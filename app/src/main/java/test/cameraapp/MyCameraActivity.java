@@ -5,9 +5,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Interpolator;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -39,6 +41,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.Result;
+import com.google.zxing.common.HybridBinarizer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -127,6 +136,7 @@ public class MyCameraActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.d("almost", "click was registered");
                 start();
+                //takePicture();
             }
         });
         Button stopper = (Button) findViewById(R.id.button2);
@@ -509,7 +519,6 @@ public class MyCameraActivity extends AppCompatActivity {
         super.onPause();
     }
 
-
     public Bitmap[] createBitmaps(Bitmap source) {
         Bitmap[] bmp = new Bitmap[9];
         int k = 0;
@@ -518,11 +527,41 @@ public class MyCameraActivity extends AppCompatActivity {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++, k++) {
                 bmp[k] = Bitmap.createBitmap(source, (width * j) / 3, (i * height) / 3, width / 3, height / 3);
+                try
+                {
+                    if (bmp[k] == null)
+                    {
+                        Log.e("bitmap", "uri is not a bitmap");
+                        return null;
+                    }
+                     int thewidth = bmp[k].getWidth();
+                     int theheight = bmp[k].getHeight();
+                    int[] pixels = new int[thewidth * theheight];
+                    bmp[k].getPixels(pixels, 0, thewidth, 0, 0, thewidth, theheight);
+                    RGBLuminanceSource thesource = new RGBLuminanceSource(thewidth, theheight, pixels);
+                    BinaryBitmap bBitmap = new BinaryBitmap(new HybridBinarizer(thesource));
+                    MultiFormatReader reader = new MultiFormatReader();
+                    try
+                    {
+                        Result result = reader.decode(bBitmap);
+                        Log.d("bitmap",result.toString());  // INFO FROM SERVER IS HERE
+                    }
+                    catch (NotFoundException e)
+                    {
+                        Log.e("bitmap", "decode exception", e);
+                        //return null;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.e("bitmap", "can not open file");
+                    //return null;
+                }
             }
         }
+        // now check the QR values in these images
         return bmp;
     }
-
 
     private Bitmap getBitmap(String path) {
 
