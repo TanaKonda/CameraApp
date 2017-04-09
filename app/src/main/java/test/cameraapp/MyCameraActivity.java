@@ -148,7 +148,7 @@ public class MyCameraActivity extends AppCompatActivity {
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                        takePicture();
+                        sendthis(takePicture());
                         ++photocount;
                         start();
                     }
@@ -159,6 +159,11 @@ public class MyCameraActivity extends AppCompatActivity {
         {
             Log.d("almost", "stop was triggered, photos taken were" + photocount);
         }
+    }
+
+    private Bitmap[] sendthis(Bitmap[] input)
+    {
+        return input;
     }
 
     private void stop()
@@ -263,7 +268,7 @@ public class MyCameraActivity extends AppCompatActivity {
             List<Surface> outputSurfaces = new ArrayList<Surface>(2);
             outputSurfaces.add(reader.getSurface());    // image reader
             outputSurfaces.add(new Surface(textureView.getSurfaceTexture()));   // texture surface
-            final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);   // capture request
+            final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_ZERO_SHUTTER_LAG);   // capture request
             captureBuilder.addTarget(reader.getSurface());  // target??
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);  // ???
             // Orientation
