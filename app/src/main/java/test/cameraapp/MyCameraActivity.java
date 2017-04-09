@@ -1,7 +1,7 @@
 package test.cameraapp;
 
-import android.app.Activity; // what for??
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -54,18 +54,20 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MyCameraActivity extends AppCompatActivity {
-//    private ImageView imageView;
+    //    private ImageView imageView;
     private static final String TAG = "API";
     private TextureView textureView;
-//    private static final int CAMERA_PHOTO = 111;
+    //    private static final int CAMERA_PHOTO = 111;
 //    private Uri imageToUploadUri;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
         ORIENTATIONS.append(Surface.ROTATION_90, 0);
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
+
     private String cameraId;
     protected CameraDevice cameraDevice;
     protected CameraCaptureSession cameraCaptureSessions;
@@ -80,26 +82,37 @@ public class MyCameraActivity extends AppCompatActivity {
     private HandlerThread mBackgroundThread = new HandlerThread("Camera Background");
 
     // Storage Permissions
-//    private static final int REQUEST_EXTERNAL_STORAGE = 1;
-//    private static String[] PERMISSIONS_STORAGE = {
-//            Manifest.permission.READ_EXTERNAL_STORAGE,
-//            Manifest.permission.WRITE_EXTERNAL_STORAGE
-//    };
-//
-//    public static void verifyStoragePermissions(Activity activity) {
-//
-//        // Check if we have write permission
-//        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-//
-//        if (permission != PackageManager.PERMISSION_GRANTED) {
-//            // We don't have permission so prompt the user
-//            ActivityCompat.requestPermissions(
-//                    activity,
-//                    PERMISSIONS_STORAGE,
-//                    REQUEST_EXTERNAL_STORAGE
-//            );
-//        }
-//    }
+    // private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
+    public static void verifyStoragePermissions(Activity activity) {
+
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int permission2 = ActivityCompat.checkSelfPermission(activity, Manifest.permission.CAMERA);
+        if (permission != PackageManager.PERMISSION_GRANTED || permission2 != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_CAMERA_PERMISSION
+            );
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                // close the app
+                Toast.makeText(MyCameraActivity.this, "Sorry!!!, you can't use this app without granting permission", Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +143,7 @@ public class MyCameraActivity extends AppCompatActivity {
         });
 
     }
+
     TextureView.SurfaceTextureListener textureListener = new TextureView.SurfaceTextureListener() {
 
         @Override
@@ -137,16 +151,19 @@ public class MyCameraActivity extends AppCompatActivity {
             //open your camera here
             openCamera();
         }
+
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
             // Transform you image captured size according to the surface width and height
             // MAYBE MOVE CROPPING HERE
         }
+
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            closeCamera();  // PUT IN TO SEE IF IT BREAKS
+            // closeCamera();  // PUT IN TO SEE IF IT BREAKS
             return false;
         }
+
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surface) {
             // IRRELEVANT
@@ -161,10 +178,12 @@ public class MyCameraActivity extends AppCompatActivity {
             cameraDevice = camera;
             createCameraPreview();
         }
+
         @Override
         public void onDisconnected(CameraDevice camera) {
             cameraDevice.close();
         }
+
         @Override
         public void onError(CameraDevice camera, int error) {
             cameraDevice.close();
@@ -184,8 +203,7 @@ public class MyCameraActivity extends AppCompatActivity {
     protected void startBackgroundThread() {
         mBackgroundThread = new HandlerThread("Camera Background");
         mBackgroundThread.start();
-        Looper a = mBackgroundThread.getLooper();
-        mBackgroundHandler = new Handler(a);
+        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
     }
 
     protected void stopBackgroundThread() {
@@ -198,8 +216,9 @@ public class MyCameraActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
     protected void takePicture() {
-        if(null == cameraDevice) {
+        if (null == cameraDevice) {
             Log.d(TAG, "cameraDevice is null");
             return;
         }
@@ -226,7 +245,7 @@ public class MyCameraActivity extends AppCompatActivity {
             // Orientation
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
-            final File file = new File(Environment.getExternalStorageDirectory()+"/pic.jpg"); // CHANGE NAME
+            final File file = new File(Environment.getExternalStorageDirectory() + "/pic.jpg"); // CHANGE NAME
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
@@ -247,6 +266,7 @@ public class MyCameraActivity extends AppCompatActivity {
                         }
                     }
                 }
+
                 private void save(byte[] bytes) throws IOException {
                     OutputStream output = null;
                     try {
@@ -280,6 +300,7 @@ public class MyCameraActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
+
                 @Override
                 public void onConfigureFailed(CameraCaptureSession session) {
                 }
@@ -299,7 +320,7 @@ public class MyCameraActivity extends AppCompatActivity {
             Surface surface = new Surface(texture);
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureRequestBuilder.addTarget(surface);
-            cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback(){
+            cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                     //The camera is already closed
@@ -310,6 +331,7 @@ public class MyCameraActivity extends AppCompatActivity {
                     cameraCaptureSessions = cameraCaptureSession;
                     updatePreview();
                 }
+
                 @Override
                 public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
                     Toast.makeText(MyCameraActivity.this, "Configuration change", Toast.LENGTH_SHORT).show();
@@ -319,28 +341,32 @@ public class MyCameraActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
     private void openCamera() {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         Log.d(TAG, "is camera open");
         try {
             cameraId = manager.getCameraIdList()[0];    // BACK CAMERA
+            Log.d(TAG, "id is " + cameraId);
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             assert map != null;
             imageDimension = map.getOutputSizes(SurfaceTexture.class)[0];
             // Add permission for camera and let user grant the permission
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(MyCameraActivity.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
-                return;
+            verifyStoragePermissions(this);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                manager.openCamera(cameraId, stateCallback, null);
+            } else {
+                Log.d(TAG, "permissions are not being granted");
             }
-            manager.openCamera(cameraId, stateCallback, null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
         Log.d(TAG, "openCamera X");
     }
+
     protected void updatePreview() {
-        if(null == cameraDevice) {
+        if (null == cameraDevice) {
             Log.e(TAG, "updatePreview error, return");
         }
         captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
@@ -362,16 +388,7 @@ public class MyCameraActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                // close the app
-                Toast.makeText(MyCameraActivity.this, "Sorry!!!, you can't use this app without granting permission", Toast.LENGTH_LONG).show();
-                finish();
-            }
-        }
-    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -383,6 +400,7 @@ public class MyCameraActivity extends AppCompatActivity {
             textureView.setSurfaceTextureListener(textureListener);
         }
     }
+
     @Override
     protected void onPause() {
         Log.d(TAG, "onPause");
@@ -391,12 +409,7 @@ public class MyCameraActivity extends AppCompatActivity {
         super.onPause();
     }
 
-//    private void takeapicture()
-//    {
-//        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-//
-//
-//    }
+
 //    private void captureCameraImage() {
 //        Intent chooserIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 //        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -479,78 +492,79 @@ public class MyCameraActivity extends AppCompatActivity {
 //        }
 //    }
 
-//    public Bitmap[] createBitmaps(Bitmap source){
-//        Bitmap[] bmp=new Bitmap[9];
-//        int k=0;
-//        int width=source.getWidth();
-//        int height=source.getHeight();
-//        for(int i=0;i<3;i++){
-//            for(int j=0;j<3;j++,k++){
-//                bmp[k]=Bitmap.createBitmap(source,(width*j)/3,(i*height)/3,width/3,height/3);
-//            }
-//        }
-//        return bmp;
-//    }
-
-
-//    private Bitmap getBitmap(String path) {
-//
-//        Uri uri = Uri.fromFile(new File(path));
-//        InputStream in = null;
-//        try {
-//            Log.d("hi", "entered");
-//            final int IMAGE_MAX_SIZE = 1200000; // 1.2MP
-//            in = getContentResolver().openInputStream(uri);
-//
-//            // Decode image size
-//            BitmapFactory.Options o = new BitmapFactory.Options();
-//            o.inJustDecodeBounds = true;
-//            BitmapFactory.decodeStream(in, null, o);
-//            in.close();
-//
-//
-//            int scale = 1;
-//            while ((o.outWidth * o.outHeight) * (1 / Math.pow(scale, 2)) >
-//                    IMAGE_MAX_SIZE) {
-//                scale++;
-//            }
-//            Log.d("hi", "scale = " + scale + ", orig-width: " + o.outWidth + ", orig-height: " + o.outHeight);
-//
-//            Bitmap b = null;
-//            in = getContentResolver().openInputStream(uri);
-//            if (scale > 1) {
-//                scale--;
-//                // scale to max possible inSampleSize that still yields an image
-//                // larger than target
-//                o = new BitmapFactory.Options();
-//                o.inSampleSize = scale;
-//                b = BitmapFactory.decodeStream(in, null, o);
-////
-////                // resize to desired dimensions
-////                int height = b.getHeight();
-////                int width = b.getWidth();
-////                Log.d("hi", "1th scale operation dimenions - width: " + width + ", height: " + height);
-////
-////                double y = Math.sqrt(IMAGE_MAX_SIZE
-////                        / (((double) width) / height));
-////                double x = (y / height) * width;
-////
-////                Bitmap scaledBitmap = Bitmap.createScaledBitmap(b, (int) x,
-////                        (int) y, true);
-////                b.recycle();
-////                b = scaledBitmap;
-////
-////                System.gc();
-////            } else {
-////                b = BitmapFactory.decodeStream(in);
-//            }
-//            in.close();
-//
-//            Log.d("hi", "bitmap size - width: " + b.getWidth() + ", height: " +
-//                    b.getHeight());
-//            return b;
-//        } catch (IOException e) {
-//            Log.e("hi", e.getMessage(), e);
-//            return null;
-//        }
+    public Bitmap[] createBitmaps(Bitmap source) {
+        Bitmap[] bmp = new Bitmap[9];
+        int k = 0;
+        int width = source.getWidth();
+        int height = source.getHeight();
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++, k++) {
+                bmp[k] = Bitmap.createBitmap(source, (width * j) / 3, (i * height) / 3, width / 3, height / 3);
+            }
+        }
+        return bmp;
     }
+
+
+    private Bitmap getBitmap(String path) {
+
+        Uri uri = Uri.fromFile(new File(path));
+        InputStream in = null;
+        try {
+            Log.d("hi", "entered");
+            final int IMAGE_MAX_SIZE = 1200000; // 1.2MP
+            in = getContentResolver().openInputStream(uri);
+
+            // Decode image size
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inJustDecodeBounds = true;
+            BitmapFactory.decodeStream(in, null, o);
+            in.close();
+
+
+            int scale = 1;
+            while ((o.outWidth * o.outHeight) * (1 / Math.pow(scale, 2)) >
+                    IMAGE_MAX_SIZE) {
+                scale++;
+            }
+            Log.d("hi", "scale = " + scale + ", orig-width: " + o.outWidth + ", orig-height: " + o.outHeight);
+
+            Bitmap b = null;
+            in = getContentResolver().openInputStream(uri);
+            if (scale > 1) {
+                scale--;
+                // scale to max possible inSampleSize that still yields an image
+                // larger than target
+                o = new BitmapFactory.Options();
+                o.inSampleSize = scale;
+                b = BitmapFactory.decodeStream(in, null, o);
+//
+//                // resize to desired dimensions
+//                int height = b.getHeight();
+//                int width = b.getWidth();
+//                Log.d("hi", "1th scale operation dimenions - width: " + width + ", height: " + height);
+//
+//                double y = Math.sqrt(IMAGE_MAX_SIZE
+//                        / (((double) width) / height));
+//                double x = (y / height) * width;
+//
+//                Bitmap scaledBitmap = Bitmap.createScaledBitmap(b, (int) x,
+//                        (int) y, true);
+//                b.recycle();
+//                b = scaledBitmap;
+//
+//                System.gc();
+            } else {
+                b = BitmapFactory.decodeStream(in);
+            }
+            in.close();
+
+            Log.d("hi", "bitmap size - width: " + b.getWidth() + ", height: " +
+                    b.getHeight());
+            return b;
+        } catch (IOException e) {
+            Log.e("hi", e.getMessage(), e);
+            return null;
+        }
+    }
+}
